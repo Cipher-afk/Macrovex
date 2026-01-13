@@ -34,9 +34,12 @@ def get_calendar_info(dates: List, calendarCell: ResultSet[Tag], impact: str):
     country = calendarCell[2].find("i")["title"]
     currency = calendarCell[3].text.strip()
     info = calendarCell[4].text.strip()
+    previous = calendarCell[6].text.strip()
+    concensus = calendarCell[7].text.strip()
+    actual = calendarCell[8].text.strip()
     if date.split(", ")[0] not in dates:
         dates.append(date.split(", ")[0])
-    return f"{impact.title()}: {date} {country} {currency} {info}"
+    return f"{impact.title()}: {date} {country} {currency} {info}\nPrevious: {previous} Consensus: {concensus} Actual: {actual}"
 
 
 def get_events(soup: BeautifulSoup):
