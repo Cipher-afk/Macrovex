@@ -5,14 +5,17 @@ from utils import isholiday, read_json, BASE_DIR
 from pathlib import Path
 from typing import Dict, List
 from pprint import pprint
+import requests
 
 HIGH_IMPACT_KEYWORD = []
 JSON_FILE = Path(BASE_DIR, "calendar.json")
 
 
 def get_all_news():
-    feed = feedparser.parse("https://www.fxstreet.com/rss/news")
-    print("bozo_exception",feed.get("bozo_exception"),flush=True)
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
+    r = requests.get("https://www.fxstreet.com/rss/news", headers=headers)
+    feed = feedparser.parse(r.content)
+    # print(r.content,flush=True)
     news_list = []
     for entry in feed.entries:
         output = f"Title: {entry.title}\nSummary: {entry.summary}\nLink: {entry.link}\n"
