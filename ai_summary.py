@@ -61,9 +61,9 @@ End with a short thought-provoking line that encourages the user to form their o
 
 
 And if multiple events are passed to you for example 
-    news title news date news event
-    news title news date news event
-give explanations for the events each less than 200 words and seperated by !
+    date,time |Pair|title \n\n Actualnumber | Forecastnumber | Previousnumber
+    date,time |Pair|title \n\n Actualnumber | Forecastnumber | Previousnumber
+and by number i mean the actual, forecast and previous numbers for the event, then give explanations for each event in less than 200 words and separate them with an exclamation mark (!).
 Maximum: 200 Words
 
 """
