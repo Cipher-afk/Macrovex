@@ -250,12 +250,16 @@ async def get_summary_for_events(message: Message):
     current_index = 0
     summary = ''
     prompt = get_event_prompt(incoming_message=text)
-    try:
-        summary = await call_groq_with_retry(prompt=prompt)
-        await save_summary(title=title, summary=summary)
-    except Exception as e:
-        await message.answer("Something broke on my end, try again in a bit")
-        print(f"Groq_Error: {e}", flush=True)
+    if await get_summary(title=title) == False:
+        try:
+            summary = await call_groq_with_retry(prompt=prompt)
+            await save_summary(title=title, summary=summary)
+        except Exception as e:
+            await message.answer("Something broke on my end, try again in a bit")
+            print(f"Groq_Error: {e}", flush=True)
+    else:
+        summary = await get_summary(title=title)
+        print("Gotten from redis")
     if "!" in summary:
         events = summary.split("!")
         print(events)
