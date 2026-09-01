@@ -5,7 +5,9 @@ from aiogram.types import (
     InlineKeyboardMarkup,
     CallbackQuery,
 )
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.filters import Command
+from buttons import summarize_event_btn,summarize_news_btn
 from config import settings
 import asyncio
 from forex_news import get_all_news, get_impact_events, get_dates
@@ -68,6 +70,7 @@ async def help_handler(message: Message):
 def paginate_buttons(current_index, total):
     """Creates the buttons"""
     buttons = []
+    builder = InlineKeyboardBuilder()
     if current_index > 0:
         prev_button = InlineKeyboardButton(
             text="Prev", callback_data=f"news:prev_{current_index}"
@@ -78,11 +81,15 @@ def paginate_buttons(current_index, total):
             text="Next", callback_data=f"news:next_{current_index}"
         )
         buttons.append(next_button)
-    return InlineKeyboardMarkup(inline_keyboard=[buttons])
+    buttons.append(summarize_news_btn)
+    builder.add(*buttons)
+    builder.adjust(2,1)
+    return builder.as_markup()
 
 
 def calendar_buttons(current_index: int, total: int, impact: str):
     buttons = []
+    builder = InlineKeyboardBuilder()
     if current_index > 0:
         prev_button = InlineKeyboardButton(
             text="Prev", callback_data=f"event:prev_{current_index}_{impact}"
@@ -93,21 +100,25 @@ def calendar_buttons(current_index: int, total: int, impact: str):
             text="Next", callback_data=f"event:next_{current_index}_{impact}"
         )
         buttons.append(next_button)
-    return InlineKeyboardMarkup(inline_keyboard=[buttons])
+    buttons.append(summarize_event_btn)
+    builder.add(*buttons)
+    builder.adjust(2,1)
+    return builder.as_markup()
 
 
 def event_buttons(current_index: int, total: int):
     buttons = []
+    
     if current_index > 0:
         prev = InlineKeyboardButton(
             text="Prev", callback_data=f"summary:prev_{current_index}"
         )
         buttons.append(prev)
     if current_index < total - 1:
-        next = InlineKeyboardButton(
+        next_ = InlineKeyboardButton(
             text="Next", callback_data=f"summary:next_{current_index}"
         )
-        buttons.append(next)
+        buttons.append(next_)
     return InlineKeyboardMarkup(inline_keyboard=[buttons])
 
 
@@ -205,9 +216,10 @@ async def handle_event_buttons(callback: CallbackQuery):
     await callback.answer()
 
 
-@router.message(Command("ai_summary"))
-async def get_ai_summary(message: Message):
+@router.callback_query(F.data == 'summarize_news')
+async def get_ai_summary(callback: CallbackQuery):
     """This function gives the ai summary of the present news displayed"""
+    message = callback.message
     thinking_message = await message.answer('🧠 Connecting the dots...')
     present_index = news_index["present_index"]
     print(present_index)
@@ -239,8 +251,9 @@ async def get_ai_summary(message: Message):
     await thinking_message.edit_text(text=response,parse_mode='HTML')
 
 
-@router.message(Command("ai_events"))
-async def get_summary_for_events(message: Message):
+@router.callback_query(F.data == 'summarize_events')
+async def get_ai_summary(callback: CallbackQuery):
+    message = callback.message
     thinking_message = await message.answer('🧠 Connecting the dots...')
     title = news_index["daily_event"][0].split(" ")[1:3]
     impact = news_index["daily_event"][0].split(" ")[0].lstrip(":")
