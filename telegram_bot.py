@@ -116,7 +116,8 @@ async def help_handler(message: Message):
     index = 0
     await message.answer("Thinking......")
     news = get_all_news()
-    news_list = news
+    news_list.extend(news)
+    print(news,news_list,flush=True)
     print(news_list[0],flush=True)
     await message.answer(
         news_list[0], reply_markup=paginate_buttons(index, len(news_list))
