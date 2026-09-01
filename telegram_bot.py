@@ -241,6 +241,7 @@ async def get_ai_summary(message: Message):
 
 @router.message(Command("ai_events"))
 async def get_summary_for_events(message: Message):
+    thinking_message = await message.answer('🧠 Connecting the dots...')
     title = news_index["daily_event"][0].split(" ")[1:3]
     impact = news_index["daily_event"][0].split(" ")[0].lstrip(":")
     title = f"{"".join(title)}_{impact}_summary"
@@ -249,7 +250,7 @@ async def get_summary_for_events(message: Message):
     current_index = 0
     summary = ''
     if await get_summary(title=title) == False:
-        prompt = await get_event_prompt(incoming_message=text)
+        prompt = get_event_prompt(incoming_message=text)
         try:
             summary = await call_groq_with_retry(prompt=prompt)
             await save_summary(title=title, summary=summary)
@@ -262,8 +263,8 @@ async def get_summary_for_events(message: Message):
         events = summary.split("!")
         print(events)
         news_index["summary_event"] = events
-        await message.answer(
-            events[current_index],
+        await thinking_message.edit_text(
+            text=events[current_index],
             reply_markup=event_buttons(current_index=current_index, total=len(events)),
         )
     else:
