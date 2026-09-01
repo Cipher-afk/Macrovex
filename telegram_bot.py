@@ -29,7 +29,6 @@ groq_limiter = GroqRateLimiter(redis_client=red)
 
 scheduler.add_job(scraper_main, trigger="cron", day_of_week="mon-fri", hour=0, minute=0)
 
-scheduler.start()
 
 news_list = get_all_news()
 news_index = {"present_index": 0, "daily_event": [], "summary_event": []}
