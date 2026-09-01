@@ -18,8 +18,8 @@ urls = [
 
 for url in urls:
     feed = feedparser.parse(url)
-    print(url)
-    print("bozo:", feed.bozo, "| status:", feed.get('status'), "| entries:", len(feed.entries))
+    print(url,flush=True)
+    print("bozo:", feed.bozo, "| status:", feed.get('status'), "| entries:", len(feed.entries),flush=True)
     print("---")
 
 def get_all_news():
