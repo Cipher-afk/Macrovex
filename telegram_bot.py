@@ -11,12 +11,13 @@ import asyncio
 from forex_news import get_all_news, get_impact_events, get_dates
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from ai_summary import get_ai_response, get_event_ai_summary
+from ai_summary import get_event_prompt,get_news_prompt,call_groq_with_retry
 from datetime import datetime
 from aiogram.enums import ParseMode
-from redis_db import save_summary, get_summary
+from redis_db import save_summary, get_summary,red
 from apscheduler.schedulers.background import BackgroundScheduler
-from scraper import main
+from scraper import main as scraper_main
+from utils import GroqRateLimiter
 
 
 TOKEN = settings.TOKEN
@@ -24,8 +25,9 @@ bot = Bot(token=TOKEN)
 dp = Dispatcher()
 scheduler = BackgroundScheduler()
 router = Router()
+groq_limiter = GroqRateLimiter(redis_client=red)
 
-scheduler.add_job(main, trigger="cron", day_of_week="mon-fri", hour=0, minute=0)
+scheduler.add_job(scraper_main, trigger="cron", day_of_week="mon-fri", hour=0, minute=0)
 
 scheduler.start()
 
@@ -201,21 +203,35 @@ async def handle_event_buttons(callback: CallbackQuery):
 @router.message(Command("ai_summary"))
 async def get_ai_summary(message: Message):
     """This function gives the ai summary of the present news displayed"""
+    thinking_message = await message.answer('🧠 Connecting the dots...')
     present_index = news_index["present_index"]
     print(present_index)
     news: str = news_list[present_index]
-    response = get_ai_response(text=news)
+    allowed, reason = await groq_limiter.acquire()
+    if not allowed:
+        if reason == 'minute':
+            wait = await groq_limiter.seconds_until_minute()
+            await message.answer(f'Macrovex is currently cooling down Try again in {wait}s Macro thanks you 🤖🥂')
+        else:
+            await message.answer('Daily Limit reached Macro waits for you tomorrow 🤖👋')
+        return
     title = news.split("\n")[0].split(": ")[1]
+    response = ''
     print(title)
     if await get_summary(title=title) == False:
+        prompt = get_news_prompt(incoming_message=news)
+        try:
+            response = await call_groq_with_retry(prompt=prompt)
+        except Exception as e:
+            await message.answer("Something broke on my end, try again in a bit")
+            print(f"Groq_Error: {e}", flush=True)
         await save_summary(title=title, summary=response)
         print(f"saved:{title}")
     else:
         summary = await get_summary(title=title)
         print("Gotten from redis")
         response = summary
-
-    await message.reply(text=response)
+    await thinking_message.edit_text(text=response,parse_mode='HTML')
 
 
 @router.message(Command("ai_events"))
@@ -226,9 +242,15 @@ async def get_summary_for_events(message: Message):
     print(title)
     text = "\n\n".join(news_index["daily_event"])
     current_index = 0
+    summary = ''
     if await get_summary(title=title) == False:
-        summary = get_event_ai_summary(text=text)
-        await save_summary(title=title, summary=summary)
+        prompt = await get_event_prompt(incoming_message=text)
+        try:
+            summary = await call_groq_with_retry(prompt=prompt)
+            await save_summary(title=title, summary=summary)
+        except Exception as e:
+            await message.answer("Something broke on my end, try again in a bit")
+            print(f"Groq_Error: {e}", flush=True)
     else:
         summary = await get_summary(title=title)
     if "!" in summary:
@@ -247,6 +269,7 @@ async def get_summary_for_events(message: Message):
 async def get_high_impact_events(message: Message):
     current_index = 0
     high_impact = get_impact_events("high")
+
     data = list(filter(lambda x: dates[current_index] in x, high_impact))
     news_index["daily_event"] = data
     await message.answer(
@@ -286,6 +309,7 @@ async def get_low_impact_events(message: Message):
 
 
 async def main():
+    scheduler.start()
     dp.include_router(router=router)
     await dp.start_polling(bot)
 

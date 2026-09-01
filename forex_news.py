@@ -1,5 +1,4 @@
 import feedparser
-from forex_calendar import fetcher
 from datetime import datetime, timedelta
 import pandas as pd
 from utils import isholiday, read_json, BASE_DIR
@@ -20,12 +19,12 @@ def get_all_news():
     return news_list
 
 
-def get_high_impact_news():
-    pass
+# def get_high_impact_news():
+#     pass
 
 
-def get_news_on_pair(pair: str):
-    pass
+# def get_news_on_pair(pair: str):
+#     pass
 
 
 def get_calendar():
@@ -91,10 +90,11 @@ def get_dates() -> List[str]:
 
 if __name__ == "__main__":
     # pprint(get_high_impact_events())
-    date = datetime.now()
-    day, month = date.day, datetime.strftime(date, "%b")
-    day += 1
-    todays_events = filter(lambda x: f"{month} {day}" in x, get_high_impact_events())
+    # date = datetime.now()
+    # day, month = date.day, datetime.strftime(date, "%b")
+    # day += 1
+    # todays_events = filter(lambda x: f"{month} {day}" in x, get_high_impact_events())
+    pprint(get_high_impact_events())
     # # today = f"{month} {day}"
     # while True:
     #     todays_events = filter(
