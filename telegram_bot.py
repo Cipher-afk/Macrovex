@@ -19,6 +19,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from scraper import main as scraper_main
 from utils import GroqRateLimiter
 from pprint import pprint
+from typing import List
 
 
 TOKEN = settings.TOKEN
@@ -114,7 +115,7 @@ def event_buttons(current_index: int, total: int):
 async def help_handler(message: Message):
     index = 0
     await message.answer("Thinking......")
-    pprint(news_list,flush=True)
+    print(news_list,flush=True)
     print(news_list[0],flush=True)
     await message.answer(
         news_list[0], reply_markup=paginate_buttons(index, len(news_list))
@@ -266,7 +267,7 @@ async def get_summary_for_events(message: Message):
     else:
         print(summary)
 
-async def get_impact_events(message:Message,event_type):
+async def get_impact_event(message:Message,event_type:List):
     current_index = 0
     if date.weekday() > 5:
         await message.answer("No events enjoy your holiday".title())
@@ -284,7 +285,7 @@ async def get_impact_events(message:Message,event_type):
 @router.message(Command("high_impact_events"))
 async def get_high_impact_events(message: Message):
     high_impact = get_impact_events("high")
-    await get_impact_events(message=message,event_type=high_impact)
+    await get_impact_event(message=message,event_type=high_impact)
     # current_date = datetime.now().strftime('%b %d')
     # data = list(filter(lambda x: current_date in x, high_impact))
     # news_index["daily_event"] = data
@@ -300,7 +301,7 @@ async def get_high_impact_events(message: Message):
 @router.message(Command("medium_impact_events"))
 async def get_medium_impact_events(message: Message):
     medium_impact = get_impact_events("medium")
-    await get_impact_events(message=message,event_type=medium_impact)
+    await get_impact_event(message=message,event_type=medium_impact)
     # data = list(filter(lambda x: dates[current_index] in x, medium_impact))
     # news_index["daily_event"] = data
     # await message.answer(
@@ -312,7 +313,7 @@ async def get_medium_impact_events(message: Message):
 @router.message(Command("low_impact_events"))
 async def get_low_impact_events(message: Message):
     low_impact = get_impact_events("low")
-    await get_impact_events(message=message,event_type=low_impact)
+    await get_impact_event(message=message,event_type=low_impact)
     # data = list(filter(lambda x: dates[current_index] in x, low_impact))
     # news_index["daily_event"] = data
     # await message.answer(
