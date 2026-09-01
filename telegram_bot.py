@@ -32,7 +32,7 @@ groq_limiter = GroqRateLimiter(redis_client=red)
 scheduler.add_job(scraper_main, trigger="cron", day_of_week="mon-fri", hour=0, minute=0)
 
 
-news_list = get_all_news()
+news_list = []
 news_index = {"present_index": 0, "daily_event": [], "summary_event": []}
 impacts = {}
 impacts["high"] = get_impact_events("high")
@@ -115,7 +115,8 @@ def event_buttons(current_index: int, total: int):
 async def help_handler(message: Message):
     index = 0
     await message.answer("Thinking......")
-    print(news_list,flush=True)
+    news = get_all_news()
+    news_list = news
     print(news_list[0],flush=True)
     await message.answer(
         news_list[0], reply_markup=paginate_buttons(index, len(news_list))
