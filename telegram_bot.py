@@ -263,6 +263,7 @@ async def get_summary_for_events(message: Message):
         await thinking_message.edit_text(
             text=events[current_index],
             reply_markup=event_buttons(current_index=current_index, total=len(events)),
+            parse_mode='HTML'
         )
     else:
         print(summary)
