@@ -94,7 +94,7 @@ if __name__ == "__main__":
     # day, month = date.day, datetime.strftime(date, "%b")
     # day += 1
     # todays_events = filter(lambda x: f"{month} {day}" in x, get_high_impact_events())
-    pprint(get_high_impact_events())
+    pprint(get_all_news()[0])
     # # today = f"{month} {day}"
     # while True:
     #     todays_events = filter(

@@ -18,6 +18,7 @@ from redis_db import save_summary, get_summary,red
 from apscheduler.schedulers.background import BackgroundScheduler
 from scraper import main as scraper_main
 from utils import GroqRateLimiter
+from pprint import pprint
 
 
 TOKEN = settings.TOKEN
@@ -113,6 +114,8 @@ def event_buttons(current_index: int, total: int):
 async def help_handler(message: Message):
     index = 0
     await message.answer("Thinking......")
+    pprint(news_list,flush=True)
+    print(news_list[0],flush=True)
     await message.answer(
         news_list[0], reply_markup=paginate_buttons(index, len(news_list))
     )
@@ -263,48 +266,59 @@ async def get_summary_for_events(message: Message):
     else:
         print(summary)
 
-
-@router.message(Command("high_impact_events"))
-async def get_high_impact_events(message: Message):
+async def get_impact_events(message:Message,event_type):
     current_index = 0
-    high_impact = get_impact_events("high")
-
-    data = list(filter(lambda x: dates[current_index] in x, high_impact))
+    if date.weekday() > 5:
+        await message.answer("No events enjoy your holiday".title())
+        return
+    current_date = datetime.now().strftime('%b %d')
+    data = list(filter(lambda x: current_date in x, event_type))
     news_index["daily_event"] = data
+    if not data:
+        await message.answer('No news for today champ guess we\'re going full technical 📈🤖')
     await message.answer(
         "\n\n".join(data),
         reply_markup=calendar_buttons(current_index, len(dates), "high"),
     )
 
+@router.message(Command("high_impact_events"))
+async def get_high_impact_events(message: Message):
+    high_impact = get_impact_events("high")
+    await get_impact_events(message=message,event_type=high_impact)
+    # current_date = datetime.now().strftime('%b %d')
+    # data = list(filter(lambda x: current_date in x, high_impact))
+    # news_index["daily_event"] = data
+    # if not data:
+    #     await message.answer()
+    # await message.answer(
+    #     "\n\n".join(data),
+    #     reply_markup=calendar_buttons(current_index, len(dates), "high"),
+    # )
+    
+
 
 @router.message(Command("medium_impact_events"))
 async def get_medium_impact_events(message: Message):
-    current_index = 0
-    if date.weekday() > 5:
-        await message.answer("No events enjoy your holiday".title())
-    else:
-        medium_impact = get_impact_events("medium")
-        data = list(filter(lambda x: dates[current_index] in x, medium_impact))
-        news_index["daily_event"] = data
-        await message.answer(
-            "\n\n".join(data),
-            reply_markup=calendar_buttons(current_index, len(dates), "medium"),
-        )
+    medium_impact = get_impact_events("medium")
+    await get_impact_events(message=message,event_type=medium_impact)
+    # data = list(filter(lambda x: dates[current_index] in x, medium_impact))
+    # news_index["daily_event"] = data
+    # await message.answer(
+    #     "\n\n".join(data),
+    #     reply_markup=calendar_buttons(current_index, len(dates), "medium"),
+    # )
 
 
 @router.message(Command("low_impact_events"))
 async def get_low_impact_events(message: Message):
-    current_index = 0
-    if date.weekday() > 5:
-        await message.answer("No events enjoy your holiday".title())
-    else:
-        low_impact = get_impact_events("low")
-        data = list(filter(lambda x: dates[current_index] in x, low_impact))
-        news_index["daily_event"] = data
-        await message.answer(
-            "\n\n".join(data),
-            reply_markup=calendar_buttons(current_index, len(dates), "low"),
-        )
+    low_impact = get_impact_events("low")
+    await get_impact_events(message=message,event_type=low_impact)
+    # data = list(filter(lambda x: dates[current_index] in x, low_impact))
+    # news_index["daily_event"] = data
+    # await message.answer(
+    #     "\n\n".join(data),
+    #     reply_markup=calendar_buttons(current_index, len(dates), "low"),
+    # )
 
 
 async def main():
