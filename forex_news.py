@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Dict, List
 from pprint import pprint
 import requests
+from bs4 import BeautifulSoup
 
 HIGH_IMPACT_KEYWORD = []
 JSON_FILE = Path(BASE_DIR, "calendar.json")
@@ -22,15 +23,24 @@ JSON_FILE = Path(BASE_DIR, "calendar.json")
 #     print("bozo:", feed.bozo, "| status:", feed.get('status'), "| entries:", len(feed.entries),flush=True)
 #     print("---")
 
+
+
+def clean_summary(raw_html, max_length=800):
+    text = BeautifulSoup(raw_html, "html.parser").get_text()
+    text = " ".join(text.split())  # collapse extra whitespace/newlines
+    if len(text) > max_length:
+        text = text[:max_length].rsplit(" ", 1)[0] + "..."
+    return text
+
 def get_all_news():
     # headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
-    url = "https://www.forexlive.com/feed/news"
+    url = "https://www.forexcrunch.com/feed/"
     feed = feedparser.parse(url)
     print(url,flush=True)
     print("bozo:", feed.bozo, "| status:", feed.get('status'), "| entries:", len(feed.entries),flush=True)
     news_list = []
     for entry in feed.entries:
-        output = f"Title: {entry.title}\nSummary: {entry.summary}\nLink: {entry.link}\n"
+        output = f"Title: {entry.title}\nSummary: {clean_summary(entry.summary)}\nLink: {entry.link}\n"
         news_list.append(output)
     return news_list
 
