@@ -81,7 +81,7 @@ def paginate_buttons(current_index, total):
             text="Next", callback_data=f"news:next_{current_index}"
         )
         buttons.append(next_button)
-    buttons.append(summarize_news_btn())
+    buttons.append(summarize_news_btn)
     builder.add(*buttons)
     builder.adjust(2,1)
     return builder.as_markup()
@@ -100,7 +100,7 @@ def calendar_buttons(current_index: int, total: int, impact: str):
             text="Next", callback_data=f"event:next_{current_index}_{impact}"
         )
         buttons.append(next_button)
-    buttons.append(summarize_event_btn())
+    buttons.append(summarize_event_btn)
     builder.add(*buttons)
     builder.adjust(2,1)
     return builder.as_markup()
